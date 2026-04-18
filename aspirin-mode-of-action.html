@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aspirin Mode of Action</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 350px;
+            pointer-events: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
+        }
+        button.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .back-button {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            pointer-events: auto;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .back-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .legend {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="panel">
+            <h1>How Aspirin Works</h1>
+            <p id="info-text">
+                Welcome! This animation shows inside a blood vessel. Red blood cells carry oxygen, while tiny platelets help stop bleeding by sticking together. 
+                <br><br>
+                However, in narrowed vessels (like with plaque), platelets can stick too much and form dangerous clots.
+            </p>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ef4444;"></div>
+                    <span>Red Blood Cell</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fbbf24; border-radius: 2px;"></div>
+                    <span>Platelet (Active)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #94a3b8; border-radius: 2px;"></div>
+                    <span>Platelet (Aspirin-Treated)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffffff; border-radius: 50%; width: 10px; height: 10px; margin-left: 3px; margin-right: 13px;"></div>
+                    <span>Aspirin Molecule</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="btn-normal" class="active">Normal State (Clotting Risk)</button>
+                <button id="btn-aspirin">Take Aspirin (Prevent Clots)</button>
+            </div>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-button">← Back to Home</a>
+
+    <div id="canvas-container">
+        <canvas id="vesselCanvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('vesselCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        let particles = [];
+        let aspirinMolecules = [];
+        let state = 'normal'; // 'normal' or 'aspirin'
+        let plaqueY;
+        let plaqueHeight = 150;
+
+        const infoText = document.getElementById('info-text');
+        const btnNormal = document.getElementById('btn-normal');
+        const btnAspirin = document.getElementById('btn-aspirin');
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            plaqueY = height / 2;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(type) {
+                this.type = type; // 'rbc' or 'platelet'
+                this.x = Math.random() * width;
+                this.y = (height / 2 - 180) + Math.random() * 360;
+                this.vx = 2 + Math.random() * 3;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                
+                if (type === 'rbc') {
+                    this.radius = 12 + Math.random() * 4;
+                    this.color = '#ef4444';
+                } else {
+                    this.radius = 4 + Math.random() * 2;
+                    this.color = '#fbbf24'; // Active platelet
+                    this.treated = false;
+                    this.stuck = false;
+                    this.stuckTimer = 0;
+                }
+            }
+
+            update() {
+                if (this.stuck) {
+                    this.stuckTimer++;
+                    if (state === 'aspirin' && this.stuckTimer > 100 && Math.random() < 0.05) {
+                        this.stuck = false; // detach slowly in aspirin state
+                    }
+                    if (this.stuckTimer > 500 && Math.random() < 0.01) {
+                         this.stuck = false; // naturally detach eventually
+                    }
+                    return;
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                const vesselTop = height / 2 - 200;
+                const vesselBottom = height / 2 + 200;
+                
+                const inPlaqueZone = this.x > width / 2 - 100 && this.x < width / 2 + 100;
+                let currentTop = vesselTop;
+                let currentBottom = vesselBottom;
+
+                if (inPlaqueZone) {
+                    const distFromCenter = Math.abs(this.x - width / 2);
+                    const plaqueEffect = (100 - distFromCenter) / 100;
+                    currentBottom -= plaqueHeight * plaqueEffect;
+                    
+                    if (this.type === 'platelet' && !this.treated && state === 'normal') {
+                        if (this.y > currentBottom - 20 && Math.random() < 0.1) {
+                            this.stuck = true;
+                            this.stuckTimer = 0;
+                        }
+                    }
+                }
+
+                if (this.y < currentTop + this.radius) {
+                    this.y = currentTop + this.radius;
+                    this.vy *= -1;
+                }
+                if (this.y > currentBottom - this.radius) {
+                    this.y = currentBottom - this.radius;
+                    this.vy *= -1;
+                }
+
+                if (this.x > width + 50) {
+                    this.x = -50;
+                    this.y = (height / 2 - 180) + Math.random() * 360;
+                    this.stuck = false;
+                    this.treated = false;
+                    this.color = this.type === 'platelet' ? '#fbbf24' : this.color;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                if (this.type === 'rbc') {
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.fill();
+                } else {
+                    ctx.rect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
+                    if (this.type === 'platelet') {
+                         ctx.fillStyle = this.treated ? '#94a3b8' : '#fbbf24';
+                    } else {
+                         ctx.fillStyle = this.color;
+                    }
+                    ctx.fill();
+                }
+            }
+        }
+
+        class Aspirin {
+            constructor() {
+                this.x = -20;
+                this.y = (height / 2 - 180) + Math.random() * 360;
+                this.vx = 4 + Math.random() * 2;
+                this.vy = (Math.random() - 0.5);
+                this.radius = 3;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                particles.forEach(p => {
+                    if (p.type === 'platelet' && !p.treated) {
+                        const dx = p.x - this.x;
+                        const dy = p.y - this.y;
+                        if (dx*dx + dy*dy < 400) {
+                            p.treated = true; 
+                        }
+                    }
+                });
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        for(let i=0; i<150; i++) particles.push(new Particle('rbc'));
+        for(let i=0; i<80; i++) particles.push(new Particle('platelet'));
+
+        function drawVessel() {
+            ctx.fillStyle = '#1e0a13';
+            ctx.fillRect(0, 0, width, height);
+
+            const vesselTop = height / 2 - 200;
+            const vesselBottom = height / 2 + 200;
+
+            ctx.fillStyle = '#4a0414';
+            ctx.fillRect(0, vesselTop, width, 400);
+
+            ctx.beginPath();
+            ctx.moveTo(0, vesselBottom);
+            ctx.lineTo(width / 2 - 150, vesselBottom);
+            ctx.quadraticCurveTo(width / 2, vesselBottom - plaqueHeight * 2, width / 2 + 150, vesselBottom);
+            ctx.lineTo(width, vesselBottom);
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.fillStyle = '#d97706';
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '16px sans-serif';
+            ctx.fillText("Cholesterol Plaque (Narrowed Vessel)", width / 2 - 130, vesselBottom + 30);
+        }
+
+        function loop() {
+            drawVessel();
+
+            if (state === 'aspirin') {
+                if (Math.random() < 0.1) aspirinMolecules.push(new Aspirin());
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            for(let i = aspirinMolecules.length - 1; i >= 0; i--) {
+                const a = aspirinMolecules[i];
+                a.update();
+                a.draw();
+                if (a.x > width) aspirinMolecules.splice(i, 1);
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        btnNormal.addEventListener('click', () => {
+            state = 'normal';
+            btnNormal.classList.add('active');
+            btnAspirin.classList.remove('active');
+            infoText.innerHTML = "<b>Normal State:</b> Notice how the yellow platelets become sticky when they pass over the plaque. They start clumping together to form a clot, which can block blood flow and cause a heart attack or stroke.";
+        });
+
+        btnAspirin.addEventListener('click', () => {
+            state = 'aspirin';
+            btnAspirin.classList.add('active');
+            btnNormal.classList.remove('active');
+            infoText.innerHTML = "<b>With Aspirin:</b> Aspirin molecules (white dots) permanently block an enzyme inside the platelets. The platelets turn gray, meaning they are no longer sticky. Blood flows freely past the plaque, preventing dangerous clots.";
+        });
+
+        loop();
+    </script>
+</body>
+</html>
