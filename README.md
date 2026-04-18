@@ -40,6 +40,27 @@ If you are a web developer and have Node.js installed, you can quickly serve the
    ```
 4. Open your web browser and navigate to the local URL provided in the terminal (usually `http://localhost:3000`).
 
+To run the project locally using npm (Node Package Manager), you will need to have Node.js installed on your laptop, which includes npm. Since this is a static website without a backend or build process, npm is used here simply to start a local web server to serve the HTML files.
+
+Here are detailed step-by-step instructions:
+
+1) Install Node.js: If you haven't already, download and install Node.js from nodejs.org. This will install both node and npm.
+
+2) Open your Terminal or Command Prompt:
+On Mac/Linux: Open the "Terminal" app.
+On Windows: Open "Command Prompt" or "PowerShell".
+
+3) Navigate to your project folder: Use the cd (change directory) command to navigate to the folder where you saved the repository files.
+Start the local server using npm/npx: You can use the npx command (which comes with npm) to run a static server without needing to configure a package.json file. Run the following command: Alternatively, you can install a server globally using npm:
+Open in your browser: The terminal will output a local address (usually http://localhost:3000 or http://127.0.0.1:8080). Open that URL in your web browser to view the application.
+
+You need all the files (including aspirin-mode-of-action.html, app.js, styles.css, and any related 3D models or .mind files on your laptop.
+
+Because this project is a "static website" (meaning all the code runs directly inside your web browser rather than on a remote server), your browser needs to have access to the physical files on your hard drive to display them.
+
+When you run the local web server using npm or Python, the server is simply acting as a delivery mechanism to hand those local files to your web browser. If the files for the aspirin visualization are missing from your folder, the server won't be able to find them when you click the link, and you will see a "404 Not Found" error. Make sure your local folder matches the complete structure of the GitHub repository. 
+
+
 ## Navigation
 
 Once the server is running, the main entry point is `index.html`. From there, you can access the different visualizations included in the project:
