@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clinical XR Assistant — Sodium Alert</title>
 
-  <!-- MindAR + Three.js -->
   <script type="importmap">
     {
       "imports": {
@@ -225,95 +224,69 @@
 </head>
 <body>
 
-<!-- ─── HEADER ─── -->
 <header>
   <div class="pulse-dot"></div>
   <h1>Clinical XR Assistant</h1>
   <span>AMLODIPINE INTERACTION MONITOR</span>
 </header>
 
-<!-- ─── MAIN ─── -->
 <main>
   <div class="section-label">Patient Room Analysis</div>
   <h2>⚠ High-Sodium Food Detected</h2>
   <p class="subtitle">
     Three items in the patient's environment have been identified as high-sodium risks.
-    Each carries significant interaction concerns for patients on <strong>Amlodipine</strong>.
-    Please review alerts below and consult the care team.
   </p>
 
-  <!-- ─── ALERT CARDS ─── -->
   <div class="cards">
-
-    <!-- Card 1: Chips -->
     <div class="card critical">
       <div class="card-badge">⛔ Critical</div>
       <div class="card-icon">🥔</div>
       <h3>Lay's Salted Crisps</h3>
       <div class="sodium">Est. sodium: ~480–600 mg per serving (37g)</div>
       <div class="interaction">
-        <strong>Amlodipine interaction:</strong> Excess sodium intake promotes fluid retention and vasoconstriction, directly opposing Amlodipine's calcium-channel blocking mechanism, potentially reducing antihypertensive efficacy.
+        <strong>Amlodipine interaction:</strong> Opposes medication mechanism and promotes fluid retention.
       </div>
       <div class="recommendation">
-        <strong>Action:</strong> Kindly ask the patient to set the crisps aside. Offer a low-sodium alternative such as unsalted nuts or fresh fruit slices.
+        <strong>Action:</strong> Set aside; offer fresh fruit.
       </div>
     </div>
 
-    <!-- Card 2: Canned Soup -->
     <div class="card critical">
       <div class="card-badge">⛔ Critical</div>
       <div class="card-icon">🥫</div>
       <h3>Heinz Cream of Tomato Soup</h3>
-      <div class="sodium">Est. sodium: ~430–480 mg per 200g serving</div>
+      <div class="sodium">Est. sodium: ~430–480 mg per serving</div>
       <div class="interaction">
-        <strong>Amlodipine interaction:</strong> High-sodium canned soups elevate plasma sodium concentration, increasing blood pressure load. This can blunt the vasodilatory effect of Amlodipine and worsen ankle oedema — a known side-effect of the drug.
+        <strong>Amlodipine interaction:</strong> Elevates BP load and worsens drug-induced oedema.
       </div>
       <div class="recommendation">
-        <strong>Action:</strong> If the patient requires soup, a homemade or low-sodium variant (&lt;140 mg/serving) is strongly preferred. Flag for the dietitian.
+        <strong>Action:</strong> Use low-sodium variant (<140 mg).
       </div>
     </div>
 
-    <!-- Card 3: Processed Meats -->
     <div class="card high">
       <div class="card-badge">⚠ High Risk</div>
       <div class="card-icon">🥩</div>
       <h3>Cured / Processed Meats</h3>
-      <div class="sodium">Est. sodium: ~900–1500 mg per 100g (salami, chorizo, prosciutto)</div>
+      <div class="sodium">Est. sodium: ~900–1500 mg per 100g</div>
       <div class="interaction">
-        <strong>Amlodipine interaction:</strong> Nitrates used in curing may cause additive vasodilation when combined with Amlodipine, risking symptomatic hypotension or dizziness. Simultaneously, the salt load undermines blood-pressure control.
+        <strong>Amlodipine interaction:</strong> Nitrates risk symptomatic hypotension/dizziness.
       </div>
       <div class="recommendation">
-        <strong>Action:</strong> Remove from the patient's immediate access. Notify the prescribing clinician. Monitor BP and check for signs of dizziness or flushing.
+        <strong>Action:</strong> Remove access; monitor BP.
       </div>
     </div>
-
   </div>
 
-  <!-- ─── XR SECTION ─── -->
   <div class="xr-section">
     <div class="section-label">Augmented Reality Mode</div>
     <h2>Image-Target AR Scanner</h2>
-    <p class="xr-desc">
-      Point your camera at any of the three food items. MindAR will recognise the image target and overlay the clinical alert directly in your environment using Three.js. Requires <strong>.mind</strong> compiled targets (see setup below).
-    </p>
+    <p class="xr-desc">Point your camera at food items to overlay holographic clinical panels.</p>
 
     <div class="xr-steps">
-      <div class="step">
-        <div class="step-num">01</div>
-        <p>Compile the three food images into a <code>.mind</code> file using the <strong>MindAR Image Compiler</strong> at <code>hiukim.github.io/mind-ar-js</code>.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <p>Upload the compiled <code>targets.mind</code> to your server and update the <code>imageTargetSrc</code> path in this file.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <p>Serve this page over <strong>HTTPS</strong> — required for camera access. Tap <em>Launch AR</em> below on a mobile or desktop with webcam.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <p>Point at any food item. A <strong>holographic clinical panel</strong> will appear with the sodium alert and drug interaction warning.</p>
-      </div>
+      <div class="step"><div class="step-num">01</div><p>Compile images at <code>hiukim.github.io/mind-ar-js</code>.</p></div>
+      <div class="step"><div class="step-num">02</div><p>Upload <code>targets2.mind</code> to your server.</p></div>
+      <div class="step"><div class="step-num">03</div><p>Serve via <strong>HTTPS</strong>.</p></div>
     </div>
 
     <div class="launch-area">
@@ -327,7 +300,6 @@
   </div>
 </main>
 
-<!-- ─── AR OVERLAY ─── -->
 <div id="ar-overlay">
   <div id="mindar-container"></div>
   <div id="ar-hud">
@@ -337,22 +309,19 @@
   <button id="close-ar" onclick="stopAR()">✕ EXIT AR</button>
 </div>
 
-<!-- ─── FOOTER ─── -->
 <footer>
-  <span>CLINICAL XR ASSISTANT</span> — For clinical support use only. Not a substitute for professional medical judgement.<br>
-  Amlodipine interaction data based on standard pharmacological references. Always verify with the prescribing clinician.
+  <span>CLINICAL XR ASSISTANT</span> — For clinical support use only.
 </footer>
 
 <script>
-  /* ─── AR LAUNCHER ─── */
   let mindarThree = null;
 
   async function launchAR() {
     const overlay = document.getElementById('ar-overlay');
     overlay.classList.add('active');
 
-    // MindAR + Three.js setup
-    const MIND_FILE = 'targets.mind';
+    // Updated MindAR file path
+    const MIND_FILE = 'targets2.mind';
 
     try {
       const { MindARThree } = window.MINDAR.IMAGE;
@@ -363,93 +332,34 @@
       });
 
       const { renderer, scene, camera } = mindarThree;
-
       const THREE = window.THREE;
 
-      // ── Helper: create a holographic alert panel ──
       function makePanel(color, lines) {
         const group = new THREE.Group();
-
-        // Background plane
         const geo = new THREE.PlaneGeometry(1.2, 0.7);
-        const mat = new THREE.MeshBasicMaterial({
-          color: new THREE.Color(0x000000),
-          transparent: true,
-          opacity: 0.82,
-          side: THREE.DoubleSide,
-        });
-        const plane = new THREE.Mesh(geo, mat);
-        group.add(plane);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.82 });
+        group.add(new THREE.Mesh(geo, mat));
 
-        // Border frame (lines)
-        const borderGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.22, 0.72, 0.001));
-        const borderMat = new THREE.LineBasicMaterial({ color: new THREE.Color(color) });
-        const border = new THREE.LineSegments(borderGeo, borderMat);
-        group.add(border);
-
-        // Canvas texture for text
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 300;
         const ctx = canvas.getContext('2d');
-
-        ctx.clearRect(0, 0, 512, 300);
-        ctx.fillStyle = 'rgba(0,0,0,0)';
-        ctx.fillRect(0, 0, 512, 300);
-
-        // Header bar
-        ctx.fillStyle = color;
-        ctx.fillRect(0, 0, 512, 48);
-
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 22px monospace';
-        ctx.fillText(lines[0], 14, 34);
-
-        ctx.fillStyle = '#e8f4f8';
-        ctx.font = '16px monospace';
+        ctx.fillStyle = color; ctx.fillRect(0, 0, 512, 48);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 22px monospace'; ctx.fillText(lines[0], 14, 34);
+        ctx.fillStyle = '#e8f4f8'; ctx.font = '16px monospace';
         lines.slice(1).forEach((l, i) => ctx.fillText(l, 14, 72 + i * 26));
 
         const tex = new THREE.CanvasTexture(canvas);
-        const tGeo = new THREE.PlaneGeometry(1.18, 0.68);
-        const tMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
-        const textPlane = new THREE.Mesh(tGeo, tMat);
-        textPlane.position.z = 0.001;
+        const tMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+        const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.18, 0.68), tMat);
+        textPlane.position.z = 0.01;
         group.add(textPlane);
-
         return group;
       }
 
-      // Alert data per target index
       const panelData = [
-        {
-          color: '#ff2d55',
-          lines: [
-            '⛔  ALT-001 CRITICAL',
-            'Lay\'s Salted Crisps',
-            'Sodium: ~540 mg/serving',
-            'Amlodipine: Antagonises vasodilation',
-            'ACTION: Remove immediately'
-          ]
-        },
-        {
-          color: '#ff2d55',
-          lines: [
-            '⛔  ALT-002 CRITICAL',
-            'Heinz Cream of Tomato Soup',
-            'Sodium: ~460 mg/serving',
-            'Amlodipine: Oedema risk ↑',
-            'ACTION: Flag to dietitian'
-          ]
-        },
-        {
-          color: '#ffb340',
-          lines: [
-            '⚠  ALT-003 HIGH RISK',
-            'Cured / Processed Meats',
-            'Sodium: ~1200 mg/100g',
-            'Amlodipine + Nitrates = Hypotension',
-            'ACTION: Notify prescriber'
-          ]
-        }
+        { color: '#ff2d55', lines: ['⛔ ALT-001 CRITICAL', 'Lay\'s Salted Crisps', 'Sodium: ~540 mg', 'Action: Remove'] },
+        { color: '#ff2d55', lines: ['⛔ ALT-002 CRITICAL', 'Heinz Tomato Soup', 'Sodium: ~460 mg', 'Action: Dietitian alert'] },
+        { color: '#ffb340', lines: ['⚠ ALT-003 HIGH RISK', 'Processed Meats', 'Sodium: ~1200 mg', 'Action: Monitor BP'] }
       ];
 
       panelData.forEach((pd, idx) => {
@@ -463,29 +373,15 @@
       renderer.setAnimationLoop(() => renderer.render(scene, camera));
 
     } catch (e) {
-      // Graceful fallback if .mind file not yet compiled
       const hud = document.getElementById('ar-hud');
-      hud.innerHTML = `
-        <div style="padding:20px;max-width:480px;font-family:monospace;color:#00e5ff;font-size:.82rem;line-height:1.7">
-          <div style="color:#ff2d55;font-size:1rem;font-weight:bold;margin-bottom:12px">⚠ AR Targets Not Yet Compiled</div>
-          <p>To activate AR mode:</p>
-          <ol style="padding-left:18px;color:#cde;margin:10px 0">
-            <li>Visit <strong>hiukim.github.io/mind-ar-js</strong></li>
-            <li>Upload the 3 food images (chips, soup, meats)</li>
-            <li>Download compiled <code>targets.mind</code></li>
-            <li>Host alongside this file and update <code>MIND_FILE</code> path</li>
-          </ol>
-          <p style="color:#7ab;margin-top:10px">Once compiled, the AR overlay will display clinical alert panels directly on each food item.</p>
-          <p style="color:#456;margin-top:8px;font-size:.72rem">Error: ${e.message}</p>
-        </div>`;
+      hud.innerHTML = `<div style="padding:20px;color:#ff2d55;font-family:monospace">
+        <b>⚠ Targets Not Ready</b><br>Compile and upload <b>targets2.mind</b>.
+      </div>`;
     }
   }
 
   function stopAR() {
-    if (mindarThree) {
-      mindarThree.stop();
-      mindarThree = null;
-    }
+    if (mindarThree) { mindarThree.stop(); mindarThree = null; }
     document.getElementById('ar-overlay').classList.remove('active');
   }
 </script>
