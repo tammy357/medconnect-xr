@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical XR Assistant — Sodium Alert</title>
+
+  <!-- MindAR + Three.js -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.147.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/",
+        "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { MindARThree } from 'mindar-image-three';
+    window.THREE = THREE;
+    window.MINDAR = window.MINDAR || {};
+    window.MINDAR.IMAGE = window.MINDAR.IMAGE || {};
+    window.MINDAR.IMAGE.MindARThree = MindARThree;
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;600;900&display=swap');
+
+    :root {
+      --red:    #ff2d55;
+      --amber:  #ffb340;
+      --cyan:   #00e5ff;
+      --bg:     #030a12;
+      --panel:  rgba(3,10,18,0.92);
+      --border: rgba(0,229,255,0.35);
+      --glow:   0 0 18px rgba(0,229,255,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Exo 2', sans-serif;
+      color: #e8f4f8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 24px;
+      background: rgba(3,10,18,0.96);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .pulse-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
+    header h1 {
+      font-size: 1rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: var(--glow);
+    }
+    header span { font-size: .75rem; color: #7ab; margin-left: auto; font-family:'Share Tech Mono'; }
+
+    /* ─── MAIN LAYOUT ─── */
+    main {
+      padding: 90px 24px 40px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: .7rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--cyan); opacity: .7; margin-bottom: 6px;
+      font-family: 'Share Tech Mono';
+    }
+
+    h2 {
+      font-size: 1.6rem; font-weight: 900; line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: .88rem; color: #8ab; line-height: 1.6; max-width: 600px;
+      margin-bottom: 36px;
+    }
+
+    /* ─── ALERT CARDS ─── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 20px; }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: var(--glow); }
+    .card::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:3px;
+    }
+    .card.critical::before { background: linear-gradient(90deg,var(--red),#ff6b35); }
+    .card.high::before     { background: linear-gradient(90deg,var(--amber),#ff9500); }
+
+    .card-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+      padding: 3px 10px; border-radius:20px; margin-bottom:14px;
+    }
+    .card.critical .card-badge { background:rgba(255,45,85,.18); color:var(--red); border:1px solid rgba(255,45,85,.4); }
+    .card.high .card-badge     { background:rgba(255,179,64,.15); color:var(--amber); border:1px solid rgba(255,179,64,.4); }
+
+    .card-icon { font-size:1.8rem; margin-bottom:10px; }
+
+    .card h3 { font-size:1rem; font-weight:700; margin-bottom:4px; }
+    .card .sodium { font-size:.78rem; color:#7ab; margin-bottom:12px; }
+
+    .card .interaction {
+      font-size:.82rem; line-height:1.6;
+      padding: 10px 12px;
+      background: rgba(255,45,85,.08);
+      border-left: 3px solid var(--red);
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 12px;
+    }
+    .card .recommendation {
+      font-size:.82rem; line-height:1.6; color:#c8e8f0;
+    }
+    .card .recommendation strong { color: var(--cyan); }
+
+    /* ─── XR SECTION ─── */
+    .xr-section { margin-top: 48px; }
+    .xr-section h2 { font-size:1.1rem; margin-bottom:8px; }
+    .xr-desc { font-size:.84rem; color:#8ab; line-height:1.6; margin-bottom:20px; }
+
+    .xr-steps {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px;
+      margin-bottom:24px;
+    }
+    .step {
+      background: rgba(0,229,255,.05);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:16px;
+    }
+    .step-num {
+      font-size:1.8rem; font-weight:900; color: var(--cyan);
+      opacity:.3; line-height:1; margin-bottom:6px;
+      font-family:'Share Tech Mono';
+    }
+    .step p { font-size:.82rem; color:#9bc; line-height:1.5; }
+
+    /* ─── Launch button ─── */
+    .launch-area { text-align:center; padding: 32px 0 0; }
+    .launch-btn {
+      display:inline-flex; align-items:center; gap:12px;
+      background: linear-gradient(135deg, #00394d, #001a26);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Exo 2'; font-size:.92rem; font-weight:700;
+      letter-spacing:.1em; text-transform:uppercase;
+      padding: 16px 36px; border-radius:10px;
+      cursor:pointer;
+      box-shadow: 0 0 24px rgba(0,229,255,.2);
+      transition: all .25s;
+    }
+    .launch-btn:hover {
+      background: rgba(0,229,255,.15);
+      box-shadow: 0 0 40px rgba(0,229,255,.4);
+    }
+    .launch-btn svg { width:20px; height:20px; }
+
+    /* ─── AR OVERLAY ─── */
+    #ar-overlay {
+      display:none;
+      position:fixed; inset:0; z-index:200;
+      background: #000;
+    }
+    #ar-overlay.active { display:block; }
+
+    #mindar-container {
+      width:100%; height:100%;
+    }
+
+    /* In-AR HUD */
+    #ar-hud {
+      position:absolute; top:0; left:0; right:0;
+      padding: 14px 20px;
+      display:flex; align-items:center; justify-content:space-between;
+      background: linear-gradient(180deg,rgba(0,0,0,.8) 0%,transparent 100%);
+      z-index:210; pointer-events:none;
+    }
+    #ar-hud .logo { font-size:.85rem; font-weight:700; color:var(--cyan); letter-spacing:.12em; }
+    #ar-hud .scanning { font-size:.72rem; font-family:'Share Tech Mono'; color:#7ab;
+      animation: blink 1.2s step-end infinite; }
+    @keyframes blink { 50%{opacity:0} }
+
+    #close-ar {
+      position:absolute; top:14px; right:20px; z-index:220;
+      background:rgba(255,45,85,.2); border:1px solid rgba(255,45,85,.5);
+      color:var(--red); font-size:.8rem; font-family:'Share Tech Mono';
+      padding:6px 14px; border-radius:6px; cursor:pointer;
+      pointer-events:all;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      text-align:center; padding:40px 24px 24px;
+      font-size:.72rem; color:#456; font-family:'Share Tech Mono';
+      border-top: 1px solid rgba(0,229,255,.08);
+      margin-top:60px;
+    }
+    footer span { color:#678; }
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header>
+  <div class="pulse-dot"></div>
+  <h1>Clinical XR Assistant</h1>
+  <span>AMLODIPINE INTERACTION MONITOR</span>
+</header>
+
+<!-- ─── MAIN ─── -->
+<main>
+  <div class="section-label">Patient Room Analysis</div>
+  <h2>⚠ High-Sodium Food Detected</h2>
+  <p class="subtitle">
+    Three items in the patient's environment have been identified as high-sodium risks.
+    Each carries significant interaction concerns for patients on <strong>Amlodipine</strong>.
+    Please review alerts below and consult the care team.
+  </p>
+
+  <!-- ─── ALERT CARDS ─── -->
+  <div class="cards">
+
+    <!-- Card 1: Chips -->
+    <div class="card critical">
+      <div class="card-badge">⛔ Critical</div>
+      <div class="card-icon">🥔</div>
+      <h3>Lay's Salted Crisps</h3>
+      <div class="sodium">Est. sodium: ~480–600 mg per serving (37g)</div>
+      <div class="interaction">
+        <strong>Amlodipine interaction:</strong> Excess sodium intake promotes fluid retention and vasoconstriction, directly opposing Amlodipine's calcium-channel blocking mechanism, potentially reducing antihypertensive efficacy.
+      </div>
+      <div class="recommendation">
+        <strong>Action:</strong> Kindly ask the patient to set the crisps aside. Offer a low-sodium alternative such as unsalted nuts or fresh fruit slices.
+      </div>
+    </div>
+
+    <!-- Card 2: Canned Soup -->
+    <div class="card critical">
+      <div class="card-badge">⛔ Critical</div>
+      <div class="card-icon">🥫</div>
+      <h3>Heinz Cream of Tomato Soup</h3>
+      <div class="sodium">Est. sodium: ~430–480 mg per 200g serving</div>
+      <div class="interaction">
+        <strong>Amlodipine interaction:</strong> High-sodium canned soups elevate plasma sodium concentration, increasing blood pressure load. This can blunt the vasodilatory effect of Amlodipine and worsen ankle oedema — a known side-effect of the drug.
+      </div>
+      <div class="recommendation">
+        <strong>Action:</strong> If the patient requires soup, a homemade or low-sodium variant (&lt;140 mg/serving) is strongly preferred. Flag for the dietitian.
+      </div>
+    </div>
+
+    <!-- Card 3: Processed Meats -->
+    <div class="card high">
+      <div class="card-badge">⚠ High Risk</div>
+      <div class="card-icon">🥩</div>
+      <h3>Cured / Processed Meats</h3>
+      <div class="sodium">Est. sodium: ~900–1500 mg per 100g (salami, chorizo, prosciutto)</div>
+      <div class="interaction">
+        <strong>Amlodipine interaction:</strong> Nitrates used in curing may cause additive vasodilation when combined with Amlodipine, risking symptomatic hypotension or dizziness. Simultaneously, the salt load undermines blood-pressure control.
+      </div>
+      <div class="recommendation">
+        <strong>Action:</strong> Remove from the patient's immediate access. Notify the prescribing clinician. Monitor BP and check for signs of dizziness or flushing.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── XR SECTION ─── -->
+  <div class="xr-section">
+    <div class="section-label">Augmented Reality Mode</div>
+    <h2>Image-Target AR Scanner</h2>
+    <p class="xr-desc">
+      Point your camera at any of the three food items. MindAR will recognise the image target and overlay the clinical alert directly in your environment using Three.js. Requires <strong>.mind</strong> compiled targets (see setup below).
+    </p>
+
+    <div class="xr-steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <p>Compile the three food images into a <code>.mind</code> file using the <strong>MindAR Image Compiler</strong> at <code>hiukim.github.io/mind-ar-js</code>.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <p>Upload the compiled <code>targets.mind</code> to your server and update the <code>imageTargetSrc</code> path in this file.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <p>Serve this page over <strong>HTTPS</strong> — required for camera access. Tap <em>Launch AR</em> below on a mobile or desktop with webcam.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <p>Point at any food item. A <strong>holographic clinical panel</strong> will appear with the sodium alert and drug interaction warning.</p>
+      </div>
+    </div>
+
+    <div class="launch-area">
+      <button class="launch-btn" onclick="launchAR()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+        </svg>
+        Launch AR Camera
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- ─── AR OVERLAY ─── -->
+<div id="ar-overlay">
+  <div id="mindar-container"></div>
+  <div id="ar-hud">
+    <span class="logo">Clinical XR</span>
+    <span class="scanning">● SCANNING FOR TARGETS…</span>
+  </div>
+  <button id="close-ar" onclick="stopAR()">✕ EXIT AR</button>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <span>CLINICAL XR ASSISTANT</span> — For clinical support use only. Not a substitute for professional medical judgement.<br>
+  Amlodipine interaction data based on standard pharmacological references. Always verify with the prescribing clinician.
+</footer>
+
+<script>
+  /* ─── AR LAUNCHER ─── */
+  let mindarThree = null;
+
+  async function launchAR() {
+    const overlay = document.getElementById('ar-overlay');
+    overlay.classList.add('active');
+
+    // MindAR + Three.js setup
+    const MIND_FILE = 'targets.mind';
+
+    try {
+      const { MindARThree } = window.MINDAR.IMAGE;
+      mindarThree = new MindARThree({
+        container: document.getElementById('mindar-container'),
+        imageTargetSrc: MIND_FILE,
+        maxTrack: 3,
+      });
+
+      const { renderer, scene, camera } = mindarThree;
+
+      const THREE = window.THREE;
+
+      // ── Helper: create a holographic alert panel ──
+      function makePanel(color, lines) {
+        const group = new THREE.Group();
+
+        // Background plane
+        const geo = new THREE.PlaneGeometry(1.2, 0.7);
+        const mat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0x000000),
+          transparent: true,
+          opacity: 0.82,
+          side: THREE.DoubleSide,
+        });
+        const plane = new THREE.Mesh(geo, mat);
+        group.add(plane);
+
+        // Border frame (lines)
+        const borderGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.22, 0.72, 0.001));
+        const borderMat = new THREE.LineBasicMaterial({ color: new THREE.Color(color) });
+        const border = new THREE.LineSegments(borderGeo, borderMat);
+        group.add(border);
+
+        // Canvas texture for text
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, 512, 300);
+        ctx.fillStyle = 'rgba(0,0,0,0)';
+        ctx.fillRect(0, 0, 512, 300);
+
+        // Header bar
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 512, 48);
+
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 22px monospace';
+        ctx.fillText(lines[0], 14, 34);
+
+        ctx.fillStyle = '#e8f4f8';
+        ctx.font = '16px monospace';
+        lines.slice(1).forEach((l, i) => ctx.fillText(l, 14, 72 + i * 26));
+
+        const tex = new THREE.CanvasTexture(canvas);
+        const tGeo = new THREE.PlaneGeometry(1.18, 0.68);
+        const tMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        const textPlane = new THREE.Mesh(tGeo, tMat);
+        textPlane.position.z = 0.001;
+        group.add(textPlane);
+
+        return group;
+      }
+
+      // Alert data per target index
+      const panelData = [
+        {
+          color: '#ff2d55',
+          lines: [
+            '⛔  ALT-001 CRITICAL',
+            'Lay\'s Salted Crisps',
+            'Sodium: ~540 mg/serving',
+            'Amlodipine: Antagonises vasodilation',
+            'ACTION: Remove immediately'
+          ]
+        },
+        {
+          color: '#ff2d55',
+          lines: [
+            '⛔  ALT-002 CRITICAL',
+            'Heinz Cream of Tomato Soup',
+            'Sodium: ~460 mg/serving',
+            'Amlodipine: Oedema risk ↑',
+            'ACTION: Flag to dietitian'
+          ]
+        },
+        {
+          color: '#ffb340',
+          lines: [
+            '⚠  ALT-003 HIGH RISK',
+            'Cured / Processed Meats',
+            'Sodium: ~1200 mg/100g',
+            'Amlodipine + Nitrates = Hypotension',
+            'ACTION: Notify prescriber'
+          ]
+        }
+      ];
+
+      panelData.forEach((pd, idx) => {
+        const anchor = mindarThree.addAnchor(idx);
+        const panel = makePanel(pd.color, pd.lines);
+        panel.position.y = 0.15;
+        anchor.group.add(panel);
+      });
+
+      await mindarThree.start();
+      renderer.setAnimationLoop(() => renderer.render(scene, camera));
+
+    } catch (e) {
+      // Graceful fallback if .mind file not yet compiled
+      const hud = document.getElementById('ar-hud');
+      hud.innerHTML = `
+        <div style="padding:20px;max-width:480px;font-family:monospace;color:#00e5ff;font-size:.82rem;line-height:1.7">
+          <div style="color:#ff2d55;font-size:1rem;font-weight:bold;margin-bottom:12px">⚠ AR Targets Not Yet Compiled</div>
+          <p>To activate AR mode:</p>
+          <ol style="padding-left:18px;color:#cde;margin:10px 0">
+            <li>Visit <strong>hiukim.github.io/mind-ar-js</strong></li>
+            <li>Upload the 3 food images (chips, soup, meats)</li>
+            <li>Download compiled <code>targets.mind</code></li>
+            <li>Host alongside this file and update <code>MIND_FILE</code> path</li>
+          </ol>
+          <p style="color:#7ab;margin-top:10px">Once compiled, the AR overlay will display clinical alert panels directly on each food item.</p>
+          <p style="color:#456;margin-top:8px;font-size:.72rem">Error: ${e.message}</p>
+        </div>`;
+    }
+  }
+
+  function stopAR() {
+    if (mindarThree) {
+      mindarThree.stop();
+      mindarThree = null;
+    }
+    document.getElementById('ar-overlay').classList.remove('active');
+  }
+</script>
+</body>
+</html>
