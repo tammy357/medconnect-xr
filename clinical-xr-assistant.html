@@ -221,6 +221,7 @@
     }
     footer span { color:#678; }
   </style>
+  <script src="audio-player.js"></script>
 </head>
 <body>
 
@@ -319,6 +320,12 @@
   async function launchAR() {
     const overlay = document.getElementById('ar-overlay');
     overlay.classList.add('active');
+    
+    if (window.audioPlayer) window.audioPlayer.startScanSound();
+    
+    // Play AI Narration
+    const scanNarration = new Audio('./sound effects/AI Narration/Please Scan Your Medication.mp3');
+    scanNarration.play().catch(e => console.warn('Narration blocked', e));
 
     // Updated MindAR file path
     const MIND_FILE = 'targets2.mind';
@@ -367,6 +374,17 @@
         const panel = makePanel(pd.color, pd.lines);
         panel.position.y = 0.15;
         anchor.group.add(panel);
+        
+        anchor.onTargetFound = () => {
+          if (window.audioPlayer) {
+            window.audioPlayer.stopScanSound();
+            if (pd.color === '#ff2d55' || pd.color === '#ffb340') window.audioPlayer.playWarning();
+            else window.audioPlayer.playSuccess();
+          }
+        };
+        anchor.onTargetLost = () => {
+          if (window.audioPlayer) window.audioPlayer.startScanSound();
+        };
       });
 
       await mindarThree.start();
@@ -381,6 +399,7 @@
   }
 
   function stopAR() {
+    if (window.audioPlayer) window.audioPlayer.stopScanSound();
     if (mindarThree) { mindarThree.stop(); mindarThree = null; }
     document.getElementById('ar-overlay').classList.remove('active');
   }

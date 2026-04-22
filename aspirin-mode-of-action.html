@@ -112,7 +112,27 @@
             border-radius: 50%;
             margin-right: 10px;
         }
+        @keyframes border-dance {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .btn-glowing {
+            position: relative;
+            z-index: 1;
+        }
+        .btn-glowing::before {
+            content: '';
+            position: absolute;
+            top: -3px; left: -3px; right: -3px; bottom: -3px;
+            background: linear-gradient(90deg, #ef4444, #0ea5e9, #ef4444, #2563eb);
+            background-size: 300% 300%;
+            z-index: -1;
+            border-radius: 11px;
+            animation: border-dance 2s linear infinite;
+        }
     </style>
+    <script src="audio-player.js"></script>
 </head>
 <body>
 
@@ -362,6 +382,9 @@
         }
 
         btnNormal.addEventListener('click', () => {
+            if (typeof playNarration !== 'undefined') {
+                setTimeout(() => playNarration(aiWithout), 1000);
+            }
             state = 'normal';
             btnNormal.classList.add('active');
             btnAspirin.classList.remove('active');
@@ -369,10 +392,40 @@
         });
 
         btnAspirin.addEventListener('click', () => {
+            if (window.audioPlayer) window.audioPlayer.playSuccess();
+            if (typeof playNarration !== 'undefined') {
+                setTimeout(() => playNarration(aiWith), 1000);
+            }
             state = 'aspirin';
+            btnAspirin.classList.remove('btn-glowing');
             btnAspirin.classList.add('active');
             btnNormal.classList.remove('active');
             infoText.innerHTML = "<b>With Aspirin:</b> Aspirin molecules (white dots) permanently block an enzyme inside the platelets. The platelets turn gray, meaning they are no longer sticky. Blood flows freely past the plaque, preventing dangerous clots.";
+        });
+
+        const aiIntro = new Audio('./sound effects/AI Narration/Intro Aspirin.mp3');
+        const aiTry = new Audio('./sound effects/AI Narration/Try Aspirin.mp3');
+        const aiWith = new Audio('./sound effects/AI Narration/With Aspirin.mp3');
+        const aiWithout = new Audio('./sound effects/AI Narration/Without Aspirin.mp3');
+        
+        let currentNarration = null;
+        function playNarration(audioObj) {
+            if (currentNarration) currentNarration.pause();
+            audioObj.currentTime = 0;
+            audioObj.play().catch(e => console.warn('Narration playback prevented:', e));
+            currentNarration = audioObj;
+        }
+
+        setTimeout(() => {
+            playNarration(aiIntro);
+        }, 3000);
+
+        aiIntro.addEventListener('ended', () => {
+            playNarration(aiTry);
+        });
+
+        aiTry.addEventListener('ended', () => {
+            btnAspirin.classList.add('btn-glowing');
         });
 
         loop();

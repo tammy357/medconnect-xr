@@ -23,11 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
     statusOverlay.classList.remove('hidden');
     medBtn.classList.remove('hidden');
     sceneEl.systems['mindar-image-system'].start();
+    if (window.audioPlayer) window.audioPlayer.startScanSound();
+    
+    // Play AI Narration
+    const scanNarration = new Audio('./sound effects/AI Narration/Please Scan Your Medication.mp3');
+    scanNarration.play().catch(e => console.warn('Narration blocked', e));
   });
 
   // 2. TRACKING LOGIC (The "Sync")
   const targetEl = document.querySelector('#heart-target');
   targetEl.addEventListener("targetFound", () => {
+    if (window.audioPlayer) {
+      window.audioPlayer.stopScanSound();
+      window.audioPlayer.playSuccess();
+    }
     statusOverlay.textContent = "SYNCED: BAYER ASPIRIN DETECTED";
     statusOverlay.style.background = "rgba(0, 229, 255, 0.7)";
     hud.setAttribute('visible', 'true');
@@ -35,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   targetEl.addEventListener("targetLost", () => {
+    if (window.audioPlayer) window.audioPlayer.startScanSound();
     statusOverlay.textContent = "SCANNING FOR ASA SOURCE...";
     statusOverlay.style.background = "rgba(0, 0, 0, 0.5)";
     hud.setAttribute('visible', 'false');
@@ -42,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. PHYSIOLOGICAL MAPPING (The Effect)
   medBtn.addEventListener('click', () => {
+    if (window.audioPlayer) window.audioPlayer.playSuccess();
     // A. Transition Heart to Protected State
     heart.setAttribute('material', 'color: #ffd700; emissive: #ffd700; emissiveIntensity: 0.6');
     heart.setAttribute('animation__pulse', 'dur: 1500'); // Slowing down cardiac work

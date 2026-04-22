@@ -9,6 +9,7 @@
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <script src="audio-player.js"></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -71,15 +72,15 @@
       </a-plane>
 
       <a-entity id="hud-panel" position="0.45 0.1 0.05" rotation="0 -20 0" visible="false">
-        <a-plane width="0.45" height="0.5" color="#07111f" opacity="0.92" material="shader: flat;"></a-plane>
+        <a-plane width="0.9" height="0.5" color="#07111f" opacity="0.92" material="shader: flat;"></a-plane>
         
-        <a-entity text="value: HEMATOLOGIC PROFILE; align: center; width: 1.2; color: #00e5ff;" position="0 0.2 0.01"></a-entity>
+        <a-entity text="value: HEMATOLOGIC PROFILE; align: center; width: 0.85; color: #00e5ff;" position="0 0.2 0.01"></a-entity>
         
-        <a-entity id="aggr-display" text="value: PLATELET AGGR: HIGH; align: left; width: 1; color: #ff3333;" position="-0.18 0.1 0.01"></a-entity>
-        <a-entity id="risk-display" text="value: CLOT RISK: ELEVATED; align: left; width: 1; color: #ff3333;" position="-0.18 0.03 0.01"></a-entity>
-        <a-entity id="flow-display" text="value: FLOW: RESTRICTED; align: left; width: 1; color: #ffffff;" position="-0.18 -0.04 0.01"></a-entity>
+        <a-entity id="aggr-display" text="value: PLATELET AGGR: HIGH; align: left; anchor: left; width: 0.8; color: #ff3333;" position="-0.4 0.1 0.01"></a-entity>
+        <a-entity id="risk-display" text="value: CLOT RISK: ELEVATED; align: left; anchor: left; width: 0.8; color: #ff3333;" position="-0.4 0.03 0.01"></a-entity>
+        <a-entity id="flow-display" text="value: FLOW: RESTRICTED; align: left; anchor: left; width: 0.8; color: #ffffff;" position="-0.4 -0.04 0.01"></a-entity>
         
-        <a-entity id="hudStatus" text="value: STATUS: AWAITING ASA; align: left; width: 0.9; color: #ffd700;" position="-0.18 -0.15 0.01"></a-entity>
+        <a-entity id="hudStatus" text="value: STATUS: AWAITING ASA; align: left; anchor: left; width: 0.8; color: #ffd700;" position="-0.4 -0.15 0.01"></a-entity>
       </a-entity>
 
     </a-entity>

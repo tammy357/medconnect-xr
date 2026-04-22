@@ -7,6 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="audio-player.js"></script>
   <style>
     body {
       margin: 0;
@@ -175,6 +176,10 @@
 
     function setBaselineState() {
       updateUI('BASELINE_UNMEDICATED', 'Constricted arteries, turbulent flow, elevated heart rate');
+      if (window.audioPlayer && window.audioPlayer.sounds && window.audioPlayer.sounds.heartbeat) {
+        if (window.audioPlayer.sounds.heartbeat.paused) window.audioPlayer.startHeartbeat();
+        gsap.to(window.audioPlayer.sounds.heartbeat, { playbackRate: 2.0, duration: 2 });
+      }
       disableButtons();
 
       gsap.to(flowSettings, {
@@ -204,6 +209,12 @@
     }
 
     function adminAmlodipine() {
+      if (window.audioPlayer) {
+          window.audioPlayer.playSuccess();
+          if (window.audioPlayer.sounds && window.audioPlayer.sounds.heartbeat) {
+              if (window.audioPlayer.sounds.heartbeat.paused) window.audioPlayer.startHeartbeat();
+          }
+      }
       updateUI('DRUG_ADMINISTRATION', 'Amlodipine entering bloodstream, targeting calcium channels...');
       disableButtons();
 
@@ -246,12 +257,22 @@
         onComplete() {
           updateUI('MEDICATED', 'Vasodilation achieved, laminar flow restored, normal heart rate');
           scene.background.setHex(medicatedConfig.palette.bg);
+          if (window.audioPlayer && window.audioPlayer.sounds && window.audioPlayer.sounds.heartbeat) {
+              window.audioPlayer.sounds.heartbeat.playbackRate = 1.0;
+          }
           enableButtons();
         }
       });
     }
 
     function triggerMissedDoseWarning() {
+      if (window.audioPlayer) {
+          window.audioPlayer.playWarning();
+          if (window.audioPlayer.sounds && window.audioPlayer.sounds.heartbeat) {
+              if (window.audioPlayer.sounds.heartbeat.paused) window.audioPlayer.startHeartbeat();
+              gsap.to(window.audioPlayer.sounds.heartbeat, { playbackRate: 2.0, duration: 4 });
+          }
+      }
       updateUI('MISSED_DOSE_WARNING', 'WARNING: Arteries re-constricting due to missed dose!');
       disableButtons();
 
@@ -296,6 +317,7 @@
     }
 
     function resetSimulation() {
+      if (window.audioPlayer) window.audioPlayer.stopHeartbeat();
       currentState = 'IDLE';
       gsap.killAll();
       updateUI('IDLE', 'Simulation reset. Click "Show Baseline" to start');
