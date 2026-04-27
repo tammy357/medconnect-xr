@@ -8,6 +8,10 @@ Because this project uses 3D models and WebAR technologies, opening the HTML fil
 
 To run this repository locally on your laptop, you need to serve the files using a local web server. Here are a few easy ways to do this:
 
+**Clone the repo in the terminal:**
+
+git clone <repo url>
+
 ### Option 1: Using VS Code (Recommended)
 If you use Visual Studio Code:
 1. Open the project folder in VS Code.
