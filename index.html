@@ -6,8 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Med-Connect XR - Digital Twin</title>
 
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
+  <script>
+    // Check if MindAR loaded successfully
+    window.addEventListener('load', function() {
+      console.log('Window loaded - checking MindAR...');
+      setTimeout(function() {
+        if (typeof MINDAR !== 'undefined') {
+          console.log('✅ MindAR library loaded successfully');
+          console.log('MINDAR version:', MINDAR.VERSION || 'unknown');
+        } else {
+          console.error('❌ MindAR library failed to load');
+        }
+      }, 500);
+    });
+  </script>
   <link rel="stylesheet" href="styles.css">
   <script src="audio-player.js"></script>
   <script src="app.js" defer></script>
@@ -22,7 +37,7 @@
         <p>● Antithrombotic Effect Visualization</p>
         <p>● Real-time Platelet Mapping</p>
       </div>
-      <button id="start-scan-btn" class="primary-button">INITIALIZE SYSTEM</button>
+      <button id="start-scan-btn" class="primary-button" disabled>LOADING SYSTEM...</button>
       <br><br>
       <a href="Circulatory System Visualization.html" class="primary-button nav-link">Circulatory System Visualization</a>
       
@@ -36,8 +51,11 @@
     </div>
   </div>
 
-  <div id="status-overlay" class="hidden">SCANNING FOR ASA SOURCE...</div>
-  <button id="medication-btn" class="glass-button hidden">ADMINISTER ASPIRIN</button>
+  <div id="status-overlay" class="hidden">SCANNING FOR MEDICATION...</div>
+  <div id="debug-panel" style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px; font-size: 11px; font-family: monospace; max-width: 300px; z-index: 999; border: 1px solid #00ff00; display: none;">
+    <div id="debug-content">AR System Status...</div>
+  </div>
+  <button id="medication-btn" class="primary-button hidden">LEARN ABOUT MY ASPIRIN</button>
 
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; maxTrack: 1; physicallyCorrectLights: true;"
@@ -46,7 +64,7 @@
     vr-mode-ui="enabled: false">
 
     <a-assets>
-      <a-asset-item id="heartModel" src="./heart.glb"></a-asset-item>
+      <!-- Heart model is now inline using A-Frame primitives -->
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -56,15 +74,19 @@
 
     <a-entity id="heart-target" mindar-image-target="targetIndex: 0">
       
-      <a-gltf-model
-        id="heart"
-        src="#heartModel"
+      <a-entity id="heart"
         scale="0.04 0.04 0.04"
         material="shader: standard; color: #7ad1ff; opacity: 0.65; transparent: true; metalness: 0.3; roughness: 0.18"
         animation__pulse="property: scale; to: 0.045 0.045 0.045; dur: 800; easing: easeInOutQuad; loop: true; dir: alternate">
         
+        <!-- Simple heart shape made from spheres and boxes -->
+        <a-sphere position="0 0.1 0" radius="0.15" color="#ff6b9d"></a-sphere>
+        <a-sphere position="-0.12 0.08 0" radius="0.12" color="#ff6b9d"></a-sphere>
+        <a-sphere position="0.12 0.08 0" radius="0.12" color="#ff6b9d"></a-sphere>
+        <a-box position="0 -0.05 0" width="0.08" height="0.1" depth="0.08" color="#ff6b9d"></a-box>
+        
         <a-light id="gold-light" type="point" color="#FFD700" intensity="0" distance="5"></a-light>
-      </a-gltf-model>
+      </a-entity>
 
       <a-plane id="scan-light" position="0 0 0.08" width="0.18" height="0.3" color="#7ae7ff" opacity="0.12" 
                material="shader: flat; transparent: true; emissive: #7ae7ff; emissiveIntensity: 0.7" visible="false"
@@ -72,15 +94,27 @@
       </a-plane>
 
       <a-entity id="hud-panel" position="0.45 0.1 0.05" rotation="0 -20 0" visible="false">
-        <a-plane width="0.9" height="0.5" color="#07111f" opacity="0.92" material="shader: flat;"></a-plane>
+        <a-plane width="1.2" height="0.8" color="#07111f" opacity="0.95" material="shader: flat;"></a-plane>
         
-        <a-entity text="value: HEMATOLOGIC PROFILE; align: center; width: 0.85; color: #00e5ff;" position="0 0.2 0.01"></a-entity>
+        <!-- Header -->
+        <a-entity text="value: ASPIRIN EDUCATION; align: center; width: 1.1; color: #00e5ff; font: sans-serif;" position="0 0.35 0.01"></a-entity>
         
-        <a-entity id="aggr-display" text="value: PLATELET AGGR: HIGH; align: left; anchor: left; width: 0.8; color: #ff3333;" position="-0.4 0.1 0.01"></a-entity>
-        <a-entity id="risk-display" text="value: CLOT RISK: ELEVATED; align: left; anchor: left; width: 0.8; color: #ff3333;" position="-0.4 0.03 0.01"></a-entity>
-        <a-entity id="flow-display" text="value: FLOW: RESTRICTED; align: left; anchor: left; width: 0.8; color: #ffffff;" position="-0.4 -0.04 0.01"></a-entity>
+        <!-- Medication Info -->
+        <a-entity text="value: MEDICATION: ASPIRIN (ASA); align: left; anchor: left; width: 1.0; color: #ffffff; font: sans-serif;" position="-0.55 0.25 0.01"></a-entity>
+        <a-entity text="value: STRENGTH: 81mg (LOW DOSE); align: left; anchor: left; width: 1.0; color: #ffffff; font: sans-serif;" position="-0.55 0.18 0.01"></a-entity>
         
-        <a-entity id="hudStatus" text="value: STATUS: AWAITING ASA; align: left; anchor: left; width: 0.8; color: #ffd700;" position="-0.4 -0.15 0.01"></a-entity>
+        <!-- Mode of Action -->
+        <a-entity text="value: MODE OF ACTION:; align: left; anchor: left; width: 1.0; color: #ffd700; font: sans-serif;" position="-0.55 0.08 0.01"></a-entity>
+        <a-entity id="action-display" text="value: ANTI-PLATELET AGENT; align: left; anchor: left; width: 1.0; color: #00ff00; font: sans-serif;" position="-0.55 0.01 0.01"></a-entity>
+        <a-entity text="value: PREVENTS BLOOD CLOTS; align: left; anchor: left; width: 1.0; color: #00ff00; font: sans-serif;" position="-0.55 -0.06 0.01"></a-entity>
+        
+        <!-- Patient Education -->
+        <a-entity text="value: WHY YOU TAKE IT:; align: left; anchor: left; width: 1.0; color: #ffd700; font: sans-serif;" position="-0.55 -0.18 0.01"></a-entity>
+        <a-entity id="benefit-display" text="value: HEART PROTECTION; align: left; anchor: left; width: 1.0; color: #00ff00; font: sans-serif;" position="-0.55 -0.25 0.01"></a-entity>
+        <a-entity text="value: STROKE PREVENTION; align: left; anchor: left; width: 1.0; color: #00ff00; font: sans-serif;" position="-0.55 -0.32 0.01"></a-entity>
+        
+        <!-- Adherence Reminder -->
+        <a-entity id="adherence-display" text="value: REMEMBER: TAKE DAILY; align: center; width: 1.1; color: #ff6b9d; font: sans-serif;" position="0 -0.42 0.01"></a-entity>
       </a-entity>
 
     </a-entity>

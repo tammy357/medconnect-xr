@@ -13,9 +13,17 @@ class AudioPlayer {
             click: new Audio(this.basePath + 'ui-click.mp3'),
             success: new Audio(this.basePath + 'success.mp3'),
             warning: new Audio(this.basePath + 'warning.mp3'),
-            scanner: new Audio(this.basePath + 'scanner-loop.mp3'),
+            scanner: new Audio(this.basePath + 'scanner-loop.mp3'), // Note: this file doesn't exist
             heartbeat: new Audio(this.basePath + 'heartbeat.mp3')
         };
+
+        // Check if files exist and handle errors
+        Object.keys(this.sounds).forEach(key => {
+            this.sounds[key].addEventListener('error', () => {
+                console.warn(`Audio file ${key} failed to load`);
+                this.sounds[key] = null; // Mark as unavailable
+            });
+        });
 
         // Configure looping sounds
         this.sounds.scanner.loop = true;
@@ -30,6 +38,10 @@ class AudioPlayer {
     }
 
     _play(audioObj) {
+        if (!audioObj) {
+            console.warn('Audio object not available');
+            return;
+        }
         // Reset the audio to start if it's already playing, unless it's a looping sound
         if (!audioObj.loop) {
             audioObj.currentTime = 0;
